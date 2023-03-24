@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Listado de Usuarios</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+</head>
+<body>
+
+  <div class="container">
+    <h1>Listado de Usuarios</h1>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Email</th>
+          <th>Teléfono</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="userTableBody">
+      </tbody>
+    </table>
+  </div>
+
+  
+<!-- Modal de edición de usuario -->
+<div class="modal fade" id="editUserModal" tabindex="-1" role="dialog" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editUserModalLabel">Editar Usuario</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="form-group">
+              <label for="editUserName">Nombre</label>
+              <input type="text" class="form-control" id="editUserName" placeholder="Nombre">
+            </div>
+            <div class="form-group">
+              <label for="editUserEmail">Email</label>
+              <input type="email" class="form-control" id="editUserEmail" placeholder="Email">
+            </div>
+            <div class="form-group">
+              <label for="editUserTel">Teléfono</label>
+              <input type="tel" class="form-control" id="editUserTel" placeholder="Teléfono">
+            </div>
+            <input type="hidden" id="editUserId">
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="saveChangesButton">Guardar Cambios</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+  
+  <script>
+    
+    $(document).ready(function() {
+  $.ajax({
+    url: '/api/users',
+    type: 'GET',
+    dataType: 'json',
+    success: function(data) {
+      console.log(data);
+      var tableBody = $('#userTableBody');
+      data.forEach(function(user) {
+        var actions = '<button class="btn btn-sm btn-danger mr-2 delete-button" data-userid="' + user._id + '">Borrar</button><button class="btn btn-sm btn-primary edit-button" data-userid="' + user._id + '">Editar</button>';
+        tableBody.append('<tr><td>' + user.name + '</td><td>' + user.email + '</td><td>' + user.tel + '</td><td>' + actions + '</td></tr>');
+      });
+
+      // Agregar manejadores de eventos después de que la tabla ha sido construida
+      // action boton delete
+      $('.delete-button').click(function() {
+        var userId = $(this).data('userid');
+        $.ajax({
+          url: '/api/users/' + userId,
+          type: 'DELETE',
+          success: function() {
+            location.reload();
+          },
+          error: function(xhr, status, error) {
+            console.log(xhr.responseText);
+          }
+        });
+      });
+      //action boton aceptar modal
+      // Acción del botón guardar cambios
+$('#saveChangesButton').click(function() {
+  var userId = $('#editUserId').val();
+  var userName = $('#editUserName').val();
+  var userEmail = $('#editUserEmail').val();
+  var userTel = $('#editUserTel').val();
+  var userData = {
+    name: userName,
+    email: userEmail,
+    tel: userTel
+  };
+  $.ajax({
+    url: '/api/users/' + userId,
+    type: 'PUT',
+    contentType: 'application/json',
+    data: JSON.stringify(userData),
+    success: function() {
+      location.reload();
+    },
+    error: function(xhr, status, error) {
+      console.log(xhr.responseText);
+    }
+  });
+});
+
+//action boton editar
+      $('.edit-button').click(function() {
+        console.log('click')
+        var userId = $(this).data('userid');
+        $.ajax({
+          url: '/api/users/' + userId,
+          type: 'GET',
+          dataType: 'json',
+          success: function(user) {
+            // Cargar ventana o modal con los datos del usuario
+            console.log('user',user);
+            $('#editUserName').val(user.data.name);
+            $('#editUserEmail').val(user.data.email);
+            $('#editUserTel').val(user.data.tel);
+            $('#editUserId').val(user.data._id);
+            $('#editUserModal').modal('show');
+          },
+          error: function(xhr, status, error) {
+            console.log('error', xhr.responseText);
+          }
+        });
+      });
+    },
+    error: function(xhr, status, error) {
+      console.log(xhr.responseText);
+    }
+    
+  });
+  
+});
+  
+    
+  </script>
+ <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
+</body>
+</html>      
