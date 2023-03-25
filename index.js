@@ -1,10 +1,16 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require("cors")
+const app = express()
 
 const PORT = 7124
-
-const app = express()
+const corsOptions = {
+    origin: "*",
+    optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
+  };
+  
+  app.use(cors(corsOptions));
+  app.use(cors())
 const dbConnect = require("./config/mongo")
 
 app.set('view engine', 'ejs');
